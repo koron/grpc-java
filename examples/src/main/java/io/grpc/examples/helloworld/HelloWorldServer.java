@@ -22,6 +22,10 @@ import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import io.grpc.netty.NettyServerBuilder;
+import java.net.InetSocketAddress;
+import java.net.InetAddress;
+
 /**
  * Server that manages startup/shutdown of a {@code Greeter} server.
  */
@@ -30,11 +34,12 @@ public class HelloWorldServer {
 
   private Server server;
 
-  private void start() throws IOException {
+  private void start(String saddr) throws IOException {
     /* The port on which the server should run */
     int port = 50051;
-    server = ServerBuilder.forPort(port)
-        .addService(new GreeterImpl())
+    InetAddress addr = InetAddress.getByName(saddr);
+    server = NettyServerBuilder.forAddress(new InetSocketAddress(addr, port))
+        .addService(new GreeterImpl(saddr))
         .build()
         .start();
     logger.info("Server started, listening on " + port);
@@ -68,16 +73,35 @@ public class HelloWorldServer {
    * Main launches the server from the command line.
    */
   public static void main(String[] args) throws IOException, InterruptedException {
-    final HelloWorldServer server = new HelloWorldServer();
-    server.start();
-    server.blockUntilShutdown();
+    String[] addrs = new String[]{
+        "192.168.1.131",
+        "192.168.1.132",
+        "192.168.1.133",
+        "192.168.1.134",
+        "192.168.1.135",
+    };
+    HelloWorldServer last = null;
+    for (String addr : addrs) {
+        HelloWorldServer server = new HelloWorldServer();
+        server.start(addr);
+        last = server;
+    }
+    if (last != null) {
+        last.blockUntilShutdown();
+    }
   }
 
   static class GreeterImpl extends GreeterGrpc.GreeterImplBase {
 
+    private String label;
+
+    GreeterImpl(String label) {
+        this.label = label;
+    }
+
     @Override
     public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
-      HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + req.getName()).build();
+      HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + req.getName() + " by " + label).build();
       responseObserver.onNext(reply);
       responseObserver.onCompleted();
     }

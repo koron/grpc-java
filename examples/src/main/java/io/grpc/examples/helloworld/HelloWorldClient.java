@@ -22,6 +22,7 @@ import io.grpc.StatusRuntimeException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import io.grpc.util.RoundRobinLoadBalancerFactory;
 
 /**
  * A simple client that requests a greeting from the {@link HelloWorldServer}.
@@ -33,8 +34,9 @@ public class HelloWorldClient {
   private final GreeterGrpc.GreeterBlockingStub blockingStub;
 
   /** Construct client connecting to HelloWorld server at {@code host:port}. */
-  public HelloWorldClient(String host, int port) {
-    this(ManagedChannelBuilder.forAddress(host, port)
+  public HelloWorldClient(String target) {
+    this(ManagedChannelBuilder.forTarget(target)
+        .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
         // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
         // needing certificates.
         .usePlaintext(true)
@@ -70,14 +72,19 @@ public class HelloWorldClient {
    * greeting.
    */
   public static void main(String[] args) throws Exception {
-    HelloWorldClient client = new HelloWorldClient("localhost", 50051);
+    String target = "dns:///grpc0.kaoriya.net:50051";
+    HelloWorldClient client = new HelloWorldClient(target);
     try {
       /* Access a service running on the local machine on port 50051 */
-      String user = "world";
+      String user = target;
       if (args.length > 0) {
         user = args[0]; /* Use the arg as the name to greet if provided */
       }
-      client.greet(user);
+      while (true) {
+          client.greet(user);
+          Thread.sleep(1000);
+      }
+    } catch (InterruptedException e) {
     } finally {
       client.shutdown();
     }
