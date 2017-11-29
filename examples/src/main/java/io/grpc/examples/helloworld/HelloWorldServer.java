@@ -73,13 +73,11 @@ public class HelloWorldServer {
    * Main launches the server from the command line.
    */
   public static void main(String[] args) throws IOException, InterruptedException {
-    String[] addrs = new String[]{
-        "192.168.1.131",
-        "192.168.1.132",
-        "192.168.1.133",
-        "192.168.1.134",
-        "192.168.1.135",
-    };
+    String[] addrs = args;
+    if (addrs.length == 0) {
+        System.err.println("*** need IP addresses to listen");
+        return;
+    }
     HelloWorldServer last = null;
     for (String addr : addrs) {
         HelloWorldServer server = new HelloWorldServer();
@@ -101,6 +99,7 @@ public class HelloWorldServer {
 
     @Override
     public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
+      logger.info("Request label: " + label);
       HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + req.getName() + " by " + label).build();
       responseObserver.onNext(reply);
       responseObserver.onCompleted();
