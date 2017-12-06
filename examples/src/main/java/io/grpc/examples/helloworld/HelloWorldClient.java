@@ -36,6 +36,7 @@ public class HelloWorldClient {
   /** Construct client connecting to HelloWorld server at {@code host:port}. */
   public HelloWorldClient(String target) {
     this(ManagedChannelBuilder.forTarget(target)
+        .nameResolverFactory(MyNameResolverProvider.getInstance())
         .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
         // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
         // needing certificates.
