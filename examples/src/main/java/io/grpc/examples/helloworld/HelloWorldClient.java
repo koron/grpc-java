@@ -27,7 +27,7 @@ import io.grpc.util.RoundRobinLoadBalancerFactory;
 /**
  * A simple client that requests a greeting from the {@link HelloWorldServer}.
  */
-public class HelloWorldClient {
+public class HelloWorldClient implements RequeryMBean {
   private static final Logger logger = Logger.getLogger(HelloWorldClient.class.getName());
 
   private final ManagedChannel channel;
@@ -89,5 +89,10 @@ public class HelloWorldClient {
     } finally {
       client.shutdown();
     }
+  }
+
+  @Override
+  public void requery() {
+    MyNameResolverProvider.getInstance().refresh();
   }
 }
