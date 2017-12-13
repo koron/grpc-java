@@ -1,5 +1,5 @@
 package io.grpc.examples.helloworld;
 
-public interface RequeryMBean {
+public interface RequeryMXBean {
     public void requery();
 }

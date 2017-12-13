@@ -24,10 +24,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.grpc.util.RoundRobinLoadBalancerFactory;
 
+import java.lang.management.ManagementFactory;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 /**
  * A simple client that requests a greeting from the {@link HelloWorldServer}.
  */
-public class HelloWorldClient implements RequeryMBean {
+public class HelloWorldClient implements RequeryMXBean {
   private static final Logger logger = Logger.getLogger(HelloWorldClient.class.getName());
 
   private final ManagedChannel channel;
@@ -75,15 +79,19 @@ public class HelloWorldClient implements RequeryMBean {
   public static void main(String[] args) throws Exception {
     String target = "dns:///grpc0.kaoriya.net:50051";
     HelloWorldClient client = new HelloWorldClient(target);
+    MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+    server.registerMBean(client, new ObjectName("grpcclient:type=client,name=Port 8080"));
     try {
       /* Access a service running on the local machine on port 50051 */
       String user = target;
       if (args.length > 0) {
         user = args[0]; /* Use the arg as the name to greet if provided */
       }
+      int count = 0;
       while (true) {
-          client.greet(user);
+          client.greet(user + "#" + count);
           Thread.sleep(1000);
+          ++count;
       }
     } catch (InterruptedException e) {
     } finally {

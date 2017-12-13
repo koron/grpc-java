@@ -99,7 +99,7 @@ public class HelloWorldServer {
 
     @Override
     public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
-      logger.info("Request label: " + label);
+      logger.info("Request: label=" + label + " name=" + req.getName());
       HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + req.getName() + " by " + label).build();
       responseObserver.onNext(reply);
       responseObserver.onCompleted();
