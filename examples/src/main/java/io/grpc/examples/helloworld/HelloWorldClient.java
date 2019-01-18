@@ -63,6 +63,14 @@ public class HelloWorldClient {
       return;
     }
     logger.info("Greeting: " + response.getMessage());
+
+    try {
+      response = blockingStub.sayHello2(request);
+    } catch (StatusRuntimeException e) {
+      logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+      return;
+    }
+    logger.info("Greeting 2: " + response.getMessage());
   }
 
   /**

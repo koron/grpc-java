@@ -16,8 +16,11 @@
 
 package io.grpc.examples.helloworld;
 
+import com.google.protobuf.Any;
+import com.google.rpc.Status;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -78,6 +81,25 @@ public class HelloWorldServer {
     @Override
     public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
       HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + req.getName()).build();
+      responseObserver.onNext(reply);
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void sayHello2(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
+      String name = req.getName();
+      if ("taro".equals(name)) {
+          Status.Builder b = Status.newBuilder().
+              setCode(3). // invalid argument
+              setMessage("boom!");
+
+          DetailMessage m = DetailMessage.newBuilder().setFoo("banned").setBar(name).build();
+          b.addDetails(Any.newBuilder().mergeFrom(m));
+
+          responseObserver.onError(StatusProto.toStatusRuntimeException(b.build()));
+          return;
+      }
+      HelloReply reply = HelloReply.newBuilder().setMessage("Hello2 " + name).build();
       responseObserver.onNext(reply);
       responseObserver.onCompleted();
     }
